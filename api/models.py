@@ -32,4 +32,4 @@ class Shipment(models.Model):
     #client = models.ForeignKey(get_user_model(), related_name='shipments', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.client.username}; {self.product.warehouse.name}; {self.product.quantity}"
+        return f"{self.warehouse.name}; {self.product.name}; {self.product.quantity}"

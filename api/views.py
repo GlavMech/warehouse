@@ -1,9 +1,19 @@
-from rest_framework import viewsets
+from django.contrib.auth import logout
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, status
+from rest_framework.decorators import action, permission_classes, api_view
 from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.response import Response
 
 from api.models import ApiUser, Warehouse, Product, Shipment
 from api.serializers import ClientSerializer, WarehouseSerializer, ProductSerializer, ShipmentSerializer
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def logout_view(request):
+    logout(request)
+    return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
 
 class IsSeller(BasePermission):
     def has_permission(self, request, view):
@@ -23,6 +33,7 @@ class ClientModelViewSet(viewsets.ModelViewSet):
     permission_classes = []
 
 
+
 class WarehouseModelViewSet(viewsets.ModelViewSet):
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer
@@ -32,6 +43,13 @@ class WarehouseModelViewSet(viewsets.ModelViewSet):
             return [IsSeller()]
         return [IsAuthenticated()]
 
+    @action(detail=True)
+    def products(self, request, pk=None):
+        warehouse = get_object_or_404(Warehouse.objects.all(), id=pk)
+        free_products = warehouse.products.filter(shipments__isnull=True)
+        return Response(
+            ProductSerializer(free_products, many=True).data
+        )
 
 class ProductModelViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -46,7 +64,9 @@ class ShipmentModelViewSet(viewsets.ModelViewSet):
     queryset = Shipment.objects.all()
     serializer_class = ShipmentSerializer
 
+
     def get_permissions(self):
         if self.action in ['list', 'create']:
-            return [IsAuthenticated()]
+            return [IsBuyer()]
         return [IsAuthenticated()]
+
