@@ -16,20 +16,20 @@ class ApiUser(AbstractUser):
 class Warehouse(models.Model):
     name = models.CharField(max_length=128)
     def __str__(self):
-        return f"{self.id}: {self.name}"
+        return f"{self.name}"
 
 class Product(models.Model):
     name = models.CharField(max_length=255, default='Default Name')
     warehouse = models.ForeignKey(Warehouse, related_name="products", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     def __str__(self):
-        return f"{self.name}. Warehouse: {self.warehouse.name}. Quantity: {self.quantity}"
+        return f"Продукт: {self.name}. Склад: {self.warehouse.name}. Количество: {self.quantity}"
 
 
 class Shipment(models.Model):
-    warehouse = models.ForeignKey(Warehouse, related_name="shipments", on_delete=models.CASCADE)
+    #warehouse = models.ForeignKey(Warehouse, related_name="shipments", on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='shipments', on_delete=models.CASCADE)
     #client = models.ForeignKey(get_user_model(), related_name='shipments', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.warehouse.name}; {self.product.name}; {self.product.quantity}"
+        return f"Склад: {self.warehouse.name}; Продукт: {self.product.name}; Количество: {self.product.quantity}"
