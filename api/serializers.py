@@ -38,22 +38,29 @@ class ClientSerializer(serializers.Serializer):
             instance.save(update_field=["password"])
         return instance
 
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = "__all__"
+        extra_kwargs = {"id": {"read_only": True}}
+
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
         fields = "__all__"
         extra_kwargs = {"id": {"read_only": True}}
 
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = "__all__"
-        extra_kwargs = {
-            "id": {"read_only": True}
-            }
-
 class ShipmentSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.exclude(shipments__isnull=False)
+    )
+
     class Meta:
         model = Shipment
-        fields = "__all__"
+        fields = '__all__'
         extra_kwargs = {"id": {"read_only": True}}
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['product'] = ProductSerializer(instance.product).data
+        return representation
