@@ -9,8 +9,10 @@ https://github.com/GlavMech/warehouse/tree/main
 
 # Запуск проекта
 при необходимости выполняем команды:
+```python
 python manage.py makemigrations
 python manage.py migrate
+```
 
 далее выполняем команду:
 python manage.py runserver
