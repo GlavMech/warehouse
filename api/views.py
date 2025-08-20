@@ -1,4 +1,4 @@
-from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, permission_classes, api_view
@@ -15,6 +15,7 @@ def logout_view(request):
     logout(request)
     return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
 
+
 class IsSeller(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.group == 'seller'
@@ -26,11 +27,11 @@ class IsBuyer(BasePermission):
 
 class ClientModelViewSet(viewsets.ModelViewSet):
     queryset = ApiUser.objects.all()
-    http_method_names = ['post', 'get']
     serializer_class = ClientSerializer
+    http_method_names = ['get', 'post']
 
-    authentication_classes = []
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
+
 
 class WarehouseModelViewSet(viewsets.ModelViewSet):
     queryset = Warehouse.objects.all()
@@ -43,11 +44,10 @@ class WarehouseModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True)
     def products(self, request, pk=None):
-        warehouse = get_object_or_404(Warehouse.objects.all(), id=pk)
+        warehouse = get_object_or_404(Warehouse, id=pk)
         free_products = warehouse.products.filter(shipments__isnull=True)
-        return Response(
-            ProductSerializer(free_products, many=True).data
-        )
+        return Response(ProductSerializer(free_products, many=True).data)
+
 
 class ProductModelViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -64,11 +64,11 @@ class ProductModelViewSet(viewsets.ModelViewSet):
             return [IsSeller()]
         return [IsAuthenticated()]
 
+
 class ShipmentModelViewSet(viewsets.ModelViewSet):
     queryset = Shipment.objects.all()
     serializer_class = ShipmentSerializer
     filter_backends = [DjangoFilterBackend]
-    #filterset_fields = []
 
     def get_permissions(self):
         if self.action in ['list', 'create']:
@@ -78,7 +78,6 @@ class ShipmentModelViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
