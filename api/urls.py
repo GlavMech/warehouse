@@ -1,20 +1,20 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import logout_view
-from api.views import ClientModelViewSet, WarehouseModelViewSet, ProductModelViewSet, ShipmentModelViewSet
+from api.views import (
+    ClientModelViewSet,
+    WarehouseModelViewSet,
+    ProductModelViewSet,
+    ShipmentModelViewSet,
+    logout_view
+)
 
 router = DefaultRouter()
-router.register('clients', ClientModelViewSet)
-router.register('warehouse', WarehouseModelViewSet)
-router.register('product', ProductModelViewSet)
-router.register('shipment', ShipmentModelViewSet)
-
-
+router.register(r'clients', ClientModelViewSet)
+router.register(r'warehouses', WarehouseModelViewSet)
+router.register(r'products', ProductModelViewSet)
+router.register(r'shipments', ShipmentModelViewSet)
 
 urlpatterns = [
-    #path('logout/', views.logout_view, name='logout'),
     path('logout/', logout_view, name='logout'),
+    path('', include(router.urls)),
 ]
-
-
-urlpatterns.extend(router.urls)
