@@ -4,26 +4,39 @@ from django.db import models
 
 
 class ApiUser(AbstractUser):
+    """
+    Пользователь с ролью продавца или покупателя.
+    """
     ROLE_CHOICES = [
         ('seller', 'Продавец'),
         ('buyer', 'Покупатель'),
     ]
     group = models.CharField(max_length=10, choices=ROLE_CHOICES, default='buyer')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.username
 
+
 class Warehouse(models.Model):
+    """
+    Склад.
+    """
     name = models.CharField(max_length=128)
-    def __str__(self):
+
+    def __str__(self) -> str:
         return f"{self.name}"
 
+
 class Product(models.Model):
+    """
+    Продукт, привязанный к складу.
+    """
     name = models.CharField(max_length=255, default='Default Name')
     warehouse = models.ForeignKey(
         Warehouse, related_name="products", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+
     def __str__(self) -> str:
         return (
             f"Продукт: {self.name}. "
@@ -33,10 +46,13 @@ class Product(models.Model):
 
 
 class Shipment(models.Model):
+    """
+    Отгрузка (связывает продукт с клиентом).
+    """
     product = models.ForeignKey(
         Product, related_name='shipments', on_delete=models.CASCADE
     )
-   
+
     def __str__(self) -> str:
         return (
             f"Продукт: {self.product.name}; "
